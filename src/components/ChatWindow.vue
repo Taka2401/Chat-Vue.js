@@ -4,7 +4,10 @@
       <ul v-for="message in messages" :key="message.id">
         <li :class="{ received: message.email !== uid, sent: message.email === uid }">
           <span class="name">{{ message.name }}</span>
-          <span class="message">{{ message.content }}</span>
+          <div class="message" @click="createLike(message.id)">
+            {{ message.content }}
+            {{ message.likes.length }}
+          </div>
           <span class="created-at">{{ message.created_at }}</span>
         </li>
       </ul>
@@ -13,11 +16,34 @@
 </template>
 
 <script>
+import axios from 'axios'
+
  export default {
    props: ['messages'],
    data () {
     return {
       uid: localStorage.getItem('uid')
+    }
+  },
+   methods: {
+    async createLike (messageId) {
+      try {
+        const res = await axios.post(`http://localhost:3000/messages/${messageId}/likes`, {},
+          {
+            headers: {
+              uid: this.uid,
+              "access-token": window.localStorage.getItem('access-token'),
+              client: window.localStorage.getItem('client')
+            }
+          })
+
+        if (!res) {
+          new Error('いいねできませんでした')
+        }
+
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 }
